@@ -1,0 +1,41 @@
+{
+  "BackupServers": [
+    {
+      "Host": "backupserver.local",
+      "Port": 9419,
+      "APIVersion": "1.0-rev1",
+      "APIRouteVersion": "v1",
+      "Username": "apiaccount",
+      "Password": "passwordhere"
+    }
+  ],
+  "DesiredStates": {
+    "CapacityTier": {
+      "EnforceEncryption": false,
+      "ImmediateCopyRequired": true,
+      "Enabled": true
+    },
+    "Users": {
+      "EnforceMFA": false
+    }
+  },
+  "Monitoring": {
+    "CapacityTier": {
+      "GbWarningLevel": 10,
+      "GbCriticalLevel": 15
+    }
+  },
+  "Alerts": {
+    "TeamsEnabled": true,
+    "TeamsAlwaysNotifyStatus": true, //if enabled and all items are OK, it will still alert to your webhook
+    "TeamsWebHookUri": "",
+    "xMattersEnabled": true,
+    "xMattersTriggerUrl": "",
+    "xMattersHostname": "",
+    "xMattersTriggerUsername": "",
+    "xMattersTriggerPassword": "",
+    "xMattersRecipient": "",
+    "SantaOpsHostname": "",
+    "SantaOpsEndpoint": ""
+  }
+}
