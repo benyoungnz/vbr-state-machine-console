@@ -16,9 +16,11 @@ namespace vbr_state_machine_console.Integration
 
         private RestClient restClient;
         private string routeVer;
+        private double limit;
         public VBR(Models.Settings.BackupServer bkpServer) { 
             restClient = Connect(bkpServer); //connect
             routeVer = bkpServer.ApiRouteVersion;
+            limit = bkpServer.ApiLimit;
         }
 
         private RestClient Connect(Models.Settings.BackupServer bkpServer)
@@ -65,14 +67,71 @@ namespace vbr_state_machine_console.Integration
 
         }
 
-
         public List<Models.VBR.SOBR.ScaleoutRepository> GetSOBRS()
         {
-
             var req = new RestRequest("/api/{apiVersionRoute}/backupInfrastructure/scaleoutrepositories", Method.Get);
 
             req.AddUrlSegment("apiVersionRoute", routeVer);
             var content = restClient.Execute<Models.VBR.SOBR.ScaleoutRepositories>(req);
+
+            return content.Data.Data;
+        }
+
+
+        public List<Models.VBR.Job.State> GetJobStates()
+        {
+            var req = new RestRequest("/api/{apiVersionRoute}/jobs/states", Method.Get);
+            req.AddUrlSegment("apiVersionRoute", routeVer);
+            req.AddParameter("limit", limit);
+
+            var content = restClient.Execute<Models.VBR.Job.States>(req);
+
+            // Is there more than 1 page of results?
+            if (content.Data.Pagination.Count < content.Data.Pagination.Total) {
+                // Determine page count
+	            double pageTotal = content.Data.Pagination.Total / content.Data.Pagination.Count;
+                pageTotal = Math.Ceiling(pageTotal);
+                var page = 0;
+                
+                while (page != pageTotal) {
+                    page++;
+		            var skip = page * limit;
+                    
+                    req.AddOrUpdateParameter("skip", skip);
+                    var pagedResponse = restClient.Execute<Models.VBR.Job.States>(req);
+                    
+                    content.Data.Data.AddRange(pagedResponse.Data.Data);
+                }
+            }
+
+            return content.Data.Data;
+        }
+
+        public List<Models.VBR.Job.Configuration> GetJobConfigs()
+        {
+            var req = new RestRequest("/api/{apiVersionRoute}/jobs", Method.Get);
+            req.AddUrlSegment("apiVersionRoute", routeVer);
+            req.AddParameter("limit", limit);
+
+            var content = restClient.Execute<Models.VBR.Job.Configurations>(req);
+
+            // Is there more than 1 page of results?
+            if (content.Data.Pagination.Count < content.Data.Pagination.Total) {
+                // Determine page count
+	            double pageTotal = content.Data.Pagination.Total / content.Data.Pagination.Count;
+                pageTotal = Math.Ceiling(pageTotal);
+                var page = 0;
+                
+                while (page != pageTotal) {
+                    page++;
+		            var skip = page * limit;
+                    
+                    req.AddOrUpdateParameter("skip", skip);
+                    var pagedResponse = restClient.Execute<Models.VBR.Job.Configurations>(req);
+                    
+                    content.Data.Data.AddRange(pagedResponse.Data.Data);
+                }
+            }
 
             return content.Data.Data;
         }

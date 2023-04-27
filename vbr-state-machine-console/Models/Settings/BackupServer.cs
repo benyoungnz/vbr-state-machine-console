@@ -21,6 +21,9 @@ namespace vbr_state_machine_console.Models.Settings
         [JsonProperty("APIRouteVersion")]
         public string ApiRouteVersion { get; set; }
 
+        [JsonProperty("APILimit")]
+        public double ApiLimit { get; set; }
+
         [JsonProperty("Username")]
         public string Username { get; set; }
 
