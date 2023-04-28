@@ -762,22 +762,13 @@ namespace vbr_state_machine_console.Models.VBR.Job
         public string? JobName { get; set; }
     }
 
-    public partial class Day
-    {
-        [JsonProperty("day")]
-        public string DayOfWeek { get; set; }
-
-        [JsonProperty("hours")]
-        public string Hours { get; set; }
-    }
-
     public partial class Continuously
     {
         [JsonProperty("isEnabled")]
         public bool IsEnabled { get; set; }
 
         [JsonProperty("backupWindow")]
-        public List<Day>? BackupWindow { get; set; }
+        public WindowSetting BackupWindow { get; set; }
     }
 
     public partial class Daily
@@ -807,7 +798,7 @@ namespace vbr_state_machine_console.Models.VBR.Job
         public double? Frequency { get; set; }
 
         [JsonProperty("backupWindow")]
-        public List<Day>? BackupWindow { get; set; }
+        public WindowSetting BackupWindow { get; set; }
 
         [JsonProperty("startTimeWithinAnHour")]
         public double? StartTimeWithinAnHour { get; set; }
@@ -831,7 +822,22 @@ namespace vbr_state_machine_console.Models.VBR.Job
         public bool IsEnabled { get; set; }
 
         [JsonProperty("backupWindow")]
-        public List<Day>? Window { get; set; }
+        public WindowSetting WindowSetting { get; set; }
+    }
+
+    public partial class WindowSetting
+    {
+        [JsonProperty("backupWindow")]
+        public List<Day>? Days { get; set; }
+    }
+
+    public partial class Day
+    {
+        [JsonProperty("day")]
+        public string DayOfWeek { get; set; }
+
+        [JsonProperty("hours")]
+        public string Hours { get; set; }
     }
 
     // Job State
