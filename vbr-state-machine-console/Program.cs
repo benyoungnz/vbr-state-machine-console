@@ -114,6 +114,39 @@ namespace vbr_state_machine_console
             }
 
 
+            //job states
+            foreach (var jobState in vbrSession.GetJobStates())
+            {
+
+
+                ColorConsole.WriteWrappedHeader($"{jobState.Name}", headerColor: ConsoleColor.Green);
+
+                ColorConsole.WriteEmbeddedColorLine($"Status: [green]{jobState.Status}[/green]");
+                ColorConsole.WriteEmbeddedColorLine($"Last Run: [green]{jobState.LastRun}[/green]");
+
+                //desired state checks
+
+                //capacity tier enabled check
+                // lstStateTracking.Add(StateComparer(settingsDesiredStates.CapacityTier.Enabled, sobr.CapacityTier.Enabled, "Capacity Tier Enabled", sobr.Name, bkpServer));
+              
+            }
+
+            // //job configs
+            foreach (var jobConfig in vbrSession.GetJobConfigs())
+            {
+
+
+                ColorConsole.WriteWrappedHeader($"{jobConfig.Name}", headerColor: ConsoleColor.Green);
+
+                ColorConsole.WriteEmbeddedColorLine($"Description: [green]{jobConfig.Description}[/green]");
+                ColorConsole.WriteEmbeddedColorLine($"Disabled: [green]{jobConfig.IsDisabled}[/green]");
+
+                //desired state checks
+
+                //capacity tier enabled check
+                // lstStateTracking.Add(StateComparer(settingsDesiredStates.CapacityTier.Enabled, sobr.CapacityTier.Enabled, "Capacity Tier Enabled", sobr.Name, bkpServer));
+              
+            }
 
             var emojiOk = "✅";
             var emojiWarning = "📣";

@@ -3,8 +3,9 @@
     {
       "Host": "backupserver.local",
       "Port": 9419,
-      "APIVersion": "1.0-rev1",
+      "APIVersion": "1.1-rev0",
       "APIRouteVersion": "v1",
+      "APILimit": 100,
       "Username": "apiaccount",
       "Password": "passwordhere"
     }
