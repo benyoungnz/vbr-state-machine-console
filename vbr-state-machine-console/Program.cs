@@ -21,8 +21,8 @@ namespace vbr_state_machine_console
 
     internal class Program
     {
-        private static Models.Settings.Alerts settingsAlerts { get; set; }
-        private static Models.Settings.DesiredStates settingsDesiredStates { get; set; }
+        private static Alerts settingsAlerts { get; set; }
+        private static DesiredStates settingsDesiredStates { get; set; }
 
         static void Main(string[] args)
         {
@@ -34,10 +34,10 @@ namespace vbr_state_machine_console
             .Build();
 
             //alert settings
-            settingsAlerts = config.GetRequiredSection("Alerts").Get<Models.Settings.Alerts>();
+            settingsAlerts = config.GetRequiredSection("Alerts").Get<Alerts>();
 
             //desired states settings
-            settingsDesiredStates = config.GetRequiredSection("DesiredStates").Get<Models.Settings.DesiredStates>();
+            settingsDesiredStates = config.GetRequiredSection("DesiredStates").Get<DesiredStates>();
 
             //monitoring
             //TBC
@@ -54,6 +54,10 @@ namespace vbr_state_machine_console
 
         }
 
+
+        /// <summary>
+        /// Method <c>StateComparer</c> takes in values from the server instance and settings and converts them to a generic object for use in the alert modules.
+        /// </summary>
         private static Models.AlertDestination.GenericCompare StateComparer(object expected, object actual, string Property, string Parent, BackupServer bkpServer)
         {
             var gc = new Models.AlertDestination.GenericCompare()
@@ -84,6 +88,52 @@ namespace vbr_state_machine_console
 
         }
 
+        /// <summary>
+        /// Method <c>StateCompareSOBR</c> Compares a SOBR against desired state
+        /// </summary>
+        private static List<Models.AlertDestination.GenericCompare> StateCompareSOBR(Integration.VBR vbrSession)
+        {
+
+            var lstStateTracking = new List<Models.AlertDestination.GenericCompare>();
+            foreach (var sobr in vbrSession.GetSOBRS())
+            {
+
+                ColorConsole.WriteWrappedHeader($"{sobr.Name}", headerColor: ConsoleColor.Green);
+
+                ColorConsole.WriteEmbeddedColorLine($"Capacity Tier: [green]{sobr.CapacityTier.Enabled}[/green] // Archive Tier: [green]{sobr.ArchiveTier.IsEnabled}[/green]");
+                ColorConsole.WriteEmbeddedColorLine($"Placement: [yellow]{sobr.PlacementPolicy.Type}[/yellow] // ID: [yellow]{sobr.Id}[/yellow]");
+
+                //desired state checks
+
+                //capacity tier enabled
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.Enabled, sobr.CapacityTier.Enabled, "Capacity Tier Enabled", sobr.Name, vbrSession.server));
+                //capacity tier immediate copy
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.ImmediateCopyRequired, sobr.CapacityTier.CopyPolicyEnabled, "Capacity Tier Encryption", sobr.Name, vbrSession.server));
+                //capacity tier enforce encryption
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.EnforceEncryption, sobr.CapacityTier.Encryption.IsEnabled, "Capacity Tier Encryption", sobr.Name, vbrSession.server));
+                //capacity tier move enabled
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.MoveEnabled, sobr.CapacityTier.MovePolicyEnabled, "Capacity Tier Move Enabled", sobr.Name, vbrSession.server));
+                //capacity tier move after days
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.MoveAfterDays, sobr.CapacityTier.OperationalRestorePeriodDays, "Capacity Tier Move After Days", sobr.Name, vbrSession.server));
+
+
+                //archive tier enabled
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrArchiveTier.Enabled, sobr.ArchiveTier.IsEnabled, "Archive Tier Enabled", sobr.Name, vbrSession.server));
+                //archive tier period days
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrArchiveTier.ArchivePeriodDays, sobr.ArchiveTier.ArchivePeriodDays, "Archive Tier Period Days", sobr.Name, vbrSession.server));
+                //archive tier cost optimized
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrArchiveTier.CostOptimizedEnabled, sobr.ArchiveTier.AdvancedSettings.CostOptimizedArchiveEnabled, "Archive Tier Cost Optimized", sobr.Name, vbrSession.server));
+                //archive tier cost optimized
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrArchiveTier.DedupeEnabled, sobr.ArchiveTier.AdvancedSettings.ArchiveDeduplicationEnabled, "Archive Tier Dedupe", sobr.Name, vbrSession.server));
+
+
+
+            }
+
+            return lstStateTracking;
+
+        }
+
         private static void ProcessBackupServer(BackupServer bkpServer)
         {
             //fire up a VBR session
@@ -93,25 +143,11 @@ namespace vbr_state_machine_console
             //globals for alerts and keeping track of state 
             var lstStateTracking = new List<Models.AlertDestination.GenericCompare>();
 
-            
-            //sobr
-            foreach (var sobr in vbrSession.GetSOBRS())
-            {
-            
+
+            //scale out backup repositories
+            lstStateTracking.AddRange(StateCompareSOBR(vbrSession));
 
 
-
-                ColorConsole.WriteWrappedHeader($"{sobr.Name}", headerColor: ConsoleColor.Green);
-
-                ColorConsole.WriteEmbeddedColorLine($"Capacity Tier: [green]{sobr.CapacityTier.Enabled}[/green] // Archive Tier: [green]{sobr.ArchiveTier.IsEnabled}[/green]");
-                ColorConsole.WriteEmbeddedColorLine($"Placement: [yellow]{sobr.PlacementPolicy.Type}[/yellow] // ID: [yellow]{sobr.Id}[/yellow]");
-
-                //desired state checks
-
-                //capacity tier enabled check
-                lstStateTracking.Add(StateComparer(settingsDesiredStates.CapacityTier.Enabled, sobr.CapacityTier.Enabled, "Capacity Tier Enabled", sobr.Name, bkpServer));
-              
-            }
 
 
             //job states

@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "vbr-state-machine-console": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

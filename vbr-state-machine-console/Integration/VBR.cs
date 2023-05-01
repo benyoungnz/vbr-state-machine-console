@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using vbr_state_machine_console.Models.Settings;
 using vbr_state_machine_console.Models.VBR;
 using veeam_repository_reporter;
 
@@ -17,10 +18,12 @@ namespace vbr_state_machine_console.Integration
         private RestClient restClient;
         private string routeVer;
         private double limit;
+        public BackupServer server;
         public VBR(Models.Settings.BackupServer bkpServer) { 
             restClient = Connect(bkpServer); //connect
             routeVer = bkpServer.ApiRouteVersion;
             limit = bkpServer.ApiLimit;
+            server = bkpServer;
         }
 
         private RestClient Connect(Models.Settings.BackupServer bkpServer)

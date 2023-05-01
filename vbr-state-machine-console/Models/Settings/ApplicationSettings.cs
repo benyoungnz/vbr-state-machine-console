@@ -8,8 +8,10 @@ namespace vbr_state_machine_console.Models.Settings
 
     public class DesiredStates
     {
-        [JsonProperty("CapacityTier")]
-        public DesiredState.CapacityTier CapacityTier { get; set; }
+        [JsonProperty("SobrCapacityTier")]
+        public DesiredState.SobrCapacityTier SobrCapacityTier { get; set; }
+        [JsonProperty("SobrArchiveTier")]
+        public DesiredState.SobrArchiveTier SobrArchiveTier { get; set; }
 
         [JsonProperty("Users")]
         public DesiredState.User Users { get; set; }

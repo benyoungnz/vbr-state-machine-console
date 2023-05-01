@@ -11,9 +11,17 @@
     }
   ],
   "DesiredStates": {
-    "CapacityTier": {
+    "SobrCapacityTier": {
       "EnforceEncryption": false,
       "ImmediateCopyRequired": true,
+      "Enabled": true,
+      "MoveEnabled": true,
+      "MoveAfterDays": 21
+    },
+    "SobrArchiveTier": {
+      "ArchivePeriodDays": 30,
+      "CostOptimizedEnabled": true,
+      "DedupeEnabled": true,
       "Enabled": true
     },
     "Users": {

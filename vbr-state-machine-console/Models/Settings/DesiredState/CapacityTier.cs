@@ -2,15 +2,21 @@
 
 namespace vbr_state_machine_console.Models.Settings.DesiredState
 {
-    public class CapacityTier
+    public class SobrCapacityTier
     {
         [JsonProperty("Enabled")]
         public bool Enabled { get; set; }
 
-        [JsonProperty("CapacityTier")]
+        [JsonProperty("EnforceEncryption")]
         public bool EnforceEncryption { get; set; }
 
         [JsonProperty("FreeSpaceCriticalPercent")]
         public bool ImmediateCopyRequired { get; set; }
+
+        [JsonProperty("MoveEnabled")]
+        public bool MoveEnabled { get; set; }
+
+        [JsonProperty("MoveAfterDays")]
+        public int MoveAfterDays { get; set; }
     }
 }
