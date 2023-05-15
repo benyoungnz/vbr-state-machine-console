@@ -8,13 +8,20 @@ namespace vbr_state_machine_console.Models.Settings
 
     public class DesiredStates
     {
+        [JsonProperty("SobrPerformanceTier")]
+        public DesiredState.SobrPerformanceTier SobrPerformanceTier { get; set; }
+
+        [JsonProperty("SobrPlacementPolicy")]
+        public DesiredState.SobrPlacementPolicy SobrPlacementPolicy { get; set; }
+
         [JsonProperty("SobrCapacityTier")]
         public DesiredState.SobrCapacityTier SobrCapacityTier { get; set; }
+
         [JsonProperty("SobrArchiveTier")]
         public DesiredState.SobrArchiveTier SobrArchiveTier { get; set; }
 
-        [JsonProperty("Users")]
-        public DesiredState.User Users { get; set; }
+        [JsonProperty("GeneralOptions")]
+        public DesiredState.GeneralOptions GeneralOptions { get; set; }
     }
 
 

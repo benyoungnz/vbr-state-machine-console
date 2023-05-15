@@ -11,6 +11,12 @@
     }
   ],
   "DesiredStates": {
+    "SobrPerformanceTier": {
+      "PerVmBackup": true
+    },
+    "SobrPlacementPolicy": {
+      "PlacementType": "Performance"
+    },
     "SobrCapacityTier": {
       "EnforceEncryption": false,
       "ImmediateCopyRequired": true,
@@ -24,8 +30,19 @@
       "DedupeEnabled": true,
       "Enabled": true
     },
-    "Users": {
-      "EnforceMFA": false
+    "GeneralOptions": {
+      "EmailIsEnabled": true,
+      "EmailTo": "bkp.reports@lan.local",
+      "EmailFrom": "veeam@lan.local",
+      "EmailSmtpServer": "smtp.lan.local",
+      "EmailAdvPort": 25,
+      "EmailSSLEnabled": true,
+      "NotifyOnSuccess": false,
+      "NotifyOnWarning": false,
+      "NotifyOnFailure": true,
+      "NotifyOnUpdates": false,
+      "NotifyOnSupportExpiration": true,
+      "ServerTimeZone": "(UTC+12:00) Auckland, Wellington"
     }
   },
   "Monitoring": {

@@ -70,6 +70,28 @@ namespace vbr_state_machine_console.Integration
 
         }
 
+        public Models.VBR.General.GeneralOptions GetGeneralOptions()
+        {
+            var req = new RestRequest("/api/{apiVersionRoute}/generalOptions", Method.Get);
+            req.AddUrlSegment("apiVersionRoute", routeVer);
+      
+
+            var content = restClient.Execute<Models.VBR.General.GeneralOptions>(req);
+
+            return content.Data;
+        }
+
+        public Models.VBR.General.ServerTime GetServerTime()
+        {
+            var req = new RestRequest("/api/{apiVersionRoute}/serverTime", Method.Get);
+            req.AddUrlSegment("apiVersionRoute", routeVer);
+
+
+            var content = restClient.Execute<Models.VBR.General.ServerTime>(req);
+
+            return content.Data;
+        }
+
         public List<Models.VBR.SOBR.ScaleoutRepository> GetSOBRS()
         {
             var req = new RestRequest("/api/{apiVersionRoute}/backupInfrastructure/scaleoutrepositories", Method.Get);

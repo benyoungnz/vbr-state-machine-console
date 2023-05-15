@@ -89,6 +89,52 @@ namespace vbr_state_machine_console
         }
 
         /// <summary>
+        /// Method <c>StateCompareGeneralSettings</c> Compares global settings for desired state
+        /// </summary>
+        private static List<Models.AlertDestination.GenericCompare> StateCompareGeneralSettings(Integration.VBR vbrSession)
+        {
+
+            var lstStateTracking = new List<Models.AlertDestination.GenericCompare>();
+
+            var generalOpt = vbrSession.GetGeneralOptions();
+            var serverTime = vbrSession.GetServerTime();
+
+            ColorConsole.WriteWrappedHeader($"General Options", headerColor: ConsoleColor.Green);
+
+            //email enabled
+            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailIsEnabled, generalOpt.EmailSettings.IsEnabled, "Email Enabled", "Global", vbrSession.server));
+            //email from
+            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailFrom, generalOpt.EmailSettings.From, "Email From", "Global", vbrSession.server));
+            //email to
+            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailTo, generalOpt.EmailSettings.To, "Email To", "Global", vbrSession.server));
+            //email server
+            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailSmtpServer, generalOpt.EmailSettings.SmtpServerName, "SMTP Server", "Global", vbrSession.server));
+            //email ssl
+            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailSslEnabled, generalOpt.EmailSettings.AdvancedSmtpOptions.SslEnabled, "SMTP SSL", "Global", vbrSession.server));
+            //email port
+            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailAdvPort, generalOpt.EmailSettings.AdvancedSmtpOptions.Port, "SMTP Port", "Global", vbrSession.server));
+
+            //notification success
+            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.NotifyOnSuccess, generalOpt.EmailSettings.NotifyOnSuccess, "Notify on Success", "Global", vbrSession.server));
+            //notification warning
+            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.NotifyOnWarning, generalOpt.EmailSettings.NotifyOnWarning, "Notify on Warning", "Global", vbrSession.server));
+            //notification failure
+            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.NotifyOnFailure, generalOpt.EmailSettings.NotifyOnFailure, "Notify on Failure", "Global", vbrSession.server));
+            //notification updates
+            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.NotifyOnUpdates, generalOpt.Notifications.NotifyOnUpdates, "Notify on Updates", "Global", vbrSession.server));
+            //notification suport expire
+            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.NotifyOnSupportExpiration, generalOpt.Notifications.NotifyOnSupportExpiration, "Notify on Support Exp", "Global", vbrSession.server));
+
+
+            //server time zone
+            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.ServerTimeZone, serverTime.TimeZone, "Server Time Zone", "Global", vbrSession.server));
+
+
+            return lstStateTracking;
+
+        }
+
+        /// <summary>
         /// Method <c>StateCompareSOBR</c> Compares a SOBR against desired state
         /// </summary>
         private static List<Models.AlertDestination.GenericCompare> StateCompareSOBR(Integration.VBR vbrSession)
@@ -104,6 +150,12 @@ namespace vbr_state_machine_console
                 ColorConsole.WriteEmbeddedColorLine($"Placement: [yellow]{sobr.PlacementPolicy.Type}[/yellow] // ID: [yellow]{sobr.Id}[/yellow]");
 
                 //desired state checks
+
+                //placement policy
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrPlacementPolicy.PlacementType, sobr.PlacementPolicy.Type, "Placement Policy", sobr.Name, vbrSession.server));
+
+                //performance tier
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrPerformanceTier.PerVmBackup, sobr.PerformanceTier.AdvancedSettings.PerVmBackup, "Per VM Backup Chains", sobr.Name, vbrSession.server));
 
                 //capacity tier enabled
                 lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.Enabled, sobr.CapacityTier.Enabled, "Capacity Tier Enabled", sobr.Name, vbrSession.server));
@@ -126,8 +178,6 @@ namespace vbr_state_machine_console
                 //archive tier cost optimized
                 lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrArchiveTier.DedupeEnabled, sobr.ArchiveTier.AdvancedSettings.ArchiveDeduplicationEnabled, "Archive Tier Dedupe", sobr.Name, vbrSession.server));
 
-
-
             }
 
             return lstStateTracking;
@@ -144,8 +194,13 @@ namespace vbr_state_machine_console
             var lstStateTracking = new List<Models.AlertDestination.GenericCompare>();
 
 
+
+            //global settings
+            lstStateTracking.AddRange(StateCompareGeneralSettings(vbrSession));
+
             //scale out backup repositories
             lstStateTracking.AddRange(StateCompareSOBR(vbrSession));
+
 
 
 
