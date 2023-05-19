@@ -1,16 +1,20 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Authenticators;
 using RestSharp.Serializers.NewtonsoftJson;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security;
 using System.Text;
+using vbr_state_machine_console.Integration;
+using vbr_state_machine_console.Models.AlertDestination;
 using vbr_state_machine_console.Models.Settings;
 using vbr_state_machine_console.Models.VBR;
 using veeam_repository_reporter;
@@ -21,8 +25,10 @@ namespace vbr_state_machine_console
 
     internal class Program
     {
+        private static Monitors settingsMonitors { get; set; }
         private static Alerts settingsAlerts { get; set; }
         private static DesiredStates settingsDesiredStates { get; set; }
+        private static List<GenericAlert> alertsToTrigger {get;set;} 
 
         static void Main(string[] args)
         {
@@ -40,8 +46,8 @@ namespace vbr_state_machine_console
             settingsDesiredStates = config.GetRequiredSection("DesiredStates").Get<DesiredStates>();
 
             //monitoring
-            //TBC
-            //settingsDesiredStates = config.GetRequiredSection("DesiredStates").Get<Models.Settings.Monitoring>(); 
+            settingsMonitors = config.GetRequiredSection("Monitors").Get<Monitors>();
+            alertsToTrigger = new List<GenericAlert>();
 
             var backupServers = config.GetRequiredSection("BackupServers").Get<List<Models.Settings.BackupServer>>();
 
@@ -72,7 +78,7 @@ namespace vbr_state_machine_console
 
             if (!gc.AlertRequired)
             {
-                gc.Description = $"Configured as expected ({gc.Expected})";
+                gc.Description = $"As expected ({gc.Expected})";
                 ColorConsole.WriteEmbeddedColorLine($"{Property}: [green]{gc.Description}[/green]");
             }
 
@@ -140,6 +146,8 @@ namespace vbr_state_machine_console
         private static List<Models.AlertDestination.GenericCompare> StateCompareSOBR(Integration.VBR vbrSession)
         {
 
+            var repoStates = vbrSession.GetRepoStates(); 
+
             var lstStateTracking = new List<Models.AlertDestination.GenericCompare>();
             foreach (var sobr in vbrSession.GetSOBRS())
             {
@@ -178,6 +186,82 @@ namespace vbr_state_machine_console
                 //archive tier cost optimized
                 lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrArchiveTier.DedupeEnabled, sobr.ArchiveTier.AdvancedSettings.ArchiveDeduplicationEnabled, "Archive Tier Dedupe", sobr.Name, vbrSession.server));
 
+
+                //monitoring 
+                //get state information, such as utilisation
+                //perf extents this SOBR (there may be more than one)
+                ColorConsole.WriteEmbeddedColorLine($"\n[green]Performance Extent Monitoring[/green]");
+                foreach (var pe in sobr.PerformanceTier.PerformanceExtents)
+                {
+                    ColorConsole.WriteEmbeddedColorLine($"Name: [yellow]{pe.Name}[/yellow] // Status: [yellow]{pe.Status}[/yellow]");
+                    var perfRepoState = repoStates.Where(x => x.Id == pe.Id).FirstOrDefault();
+                    ColorConsole.WriteInfo("\nState Information:");
+                    if (perfRepoState != null)
+                    {
+                        var perfCapacityPercentUsed = CalculatePercent(perfRepoState.UsedSpaceGb, perfRepoState.CapacityGb);
+                        
+                    
+                        if (perfCapacityPercentUsed >= settingsMonitors.SobrPerformanceTier.GbWarningLevel)
+                        {
+                           var priority = perfCapacityPercentUsed >= settingsMonitors.SobrPerformanceTier.GbCriticalLevel ? "MEDIUM" : "CRITICAL";
+                           alertsToTrigger.Add(new GenericAlert()
+                           {
+                                Message = $"Capacity: {perfRepoState.CapacityGb}gb, Used: {perfRepoState.UsedSpaceGb}gb",
+                                Parent = sobr.Name,
+                                VBRServer = vbrSession.server.Host,
+                                Property = $"Performance Extent {pe.Name}",
+                                Subject = $"Performance extent at {perfCapacityPercentUsed}%"
+                  
+                           });
+                            ColorConsole.WriteEmbeddedColorLine($"Status: [yellow]{priority} {perfCapacityPercentUsed}% Used[/yellow] // Name: [yellow]{pe.Name}[/yellow]");
+
+
+                        }
+                        else
+                         ColorConsole.WriteEmbeddedColorLine($"Status: [green]OK {perfCapacityPercentUsed}% Used[/green] // Name: [green]{pe.Name}[/green]");
+                  
+
+                    }
+                }
+
+                //capacity tier for this SOBR
+                ColorConsole.WriteEmbeddedColorLine($"\n[green]Capacity Tier Monitoring[/green]");
+                if (sobr.CapacityTier.Enabled)
+                {
+                    ColorConsole.WriteInfo("\nCapacity Tier //");
+            
+                    //get state information, such as utilisation
+                    var capRepoState = repoStates.Where(x => x.Id == sobr.CapacityTier.ExtentId).FirstOrDefault();
+                    ColorConsole.WriteLine("State Information:");
+                    if (capRepoState != null)
+                    {
+           
+                       
+                        if (capRepoState.UsedSpaceGb >= settingsMonitors.SobrCapacityTier.GbWarningLevel)
+                        {
+                           var priority = capRepoState.UsedSpaceGb >= settingsMonitors.SobrCapacityTier.GbCriticalLevel ? "MEDIUM" : "CRITICAL";
+                           alertsToTrigger.Add(new GenericAlert()
+                           {
+                                Message = $"Used: {capRepoState.UsedSpaceGb}gb, Endpoint: {capRepoState.Path}",
+                                Parent = sobr.Name,
+                                VBRServer = vbrSession.server.Host,
+                                Property = $"{capRepoState.Path}",
+                                Subject = $"Capacity tier usage at {capRepoState.UsedSpaceGb}gb"
+                  
+                           });
+
+                            ColorConsole.WriteEmbeddedColorLine($"Status: [yellow]{priority} {capRepoState.UsedSpaceGb}gb Used[/yellow] // Path: [yellow]{capRepoState.Path}[/yellow]");
+
+                        }
+                        else
+                         ColorConsole.WriteEmbeddedColorLine($"Status: [green]OK {capRepoState.UsedSpaceGb}gb Used[/green] // Path: [green]{capRepoState.Path}[/green]");
+                  
+
+                    }
+                   
+
+                }
+    
             }
 
             return lstStateTracking;
@@ -198,6 +282,7 @@ namespace vbr_state_machine_console
             //global settings
             lstStateTracking.AddRange(StateCompareGeneralSettings(vbrSession));
 
+            
             //scale out backup repositories
             lstStateTracking.AddRange(StateCompareSOBR(vbrSession));
 
@@ -223,20 +308,26 @@ namespace vbr_state_machine_console
             }
 
             // //job configs
-            foreach (var jobConfig in vbrSession.GetJobConfigs())
-            {
+            // foreach (var jobConfig in vbrSession.GetJobConfigs())
+            // {
 
 
-                ColorConsole.WriteWrappedHeader($"{jobConfig.Name}", headerColor: ConsoleColor.Green);
+            //     ColorConsole.WriteWrappedHeader($"{jobConfig.Name}", headerColor: ConsoleColor.Green);
 
-                ColorConsole.WriteEmbeddedColorLine($"Description: [green]{jobConfig.Description}[/green]");
-                ColorConsole.WriteEmbeddedColorLine($"Disabled: [green]{jobConfig.IsDisabled}[/green]");
+            //     ColorConsole.WriteEmbeddedColorLine($"Description: [green]{jobConfig.Description}[/green]");
+            //     ColorConsole.WriteEmbeddedColorLine($"Disabled: [green]{jobConfig.IsDisabled}[/green]");
 
-                //desired state checks
+            //     //desired state checks
 
-                //capacity tier enabled check
-                // lstStateTracking.Add(StateComparer(settingsDesiredStates.CapacityTier.Enabled, sobr.CapacityTier.Enabled, "Capacity Tier Enabled", sobr.Name, bkpServer));
+            //     //capacity tier enabled check
+            //     // lstStateTracking.Add(StateComparer(settingsDesiredStates.CapacityTier.Enabled, sobr.CapacityTier.Enabled, "Capacity Tier Enabled", sobr.Name, bkpServer));
               
+            // }
+
+            var xMatters = new XMatters(settingsAlerts);
+            foreach (var alert in alertsToTrigger)
+            {
+                xMatters.TriggerWebhook(alert);
             }
 
             var emojiOk = "✅";
@@ -245,12 +336,25 @@ namespace vbr_state_machine_console
 
             //process alerts, for now dump everything, need to use the alwaysAlert teams etc to push potentially just violations of rules
             //TODO: move to helper function and provide more functionality and formatting, just a quick test example
+
+
+            //group by
             var teamsAlertAttachments = new List<dynamic>(); //the alert for THIS sobr
             var teamsFactSet = new Models.AlertDestination.Teams.BodyFactSet() { Facts = new List<Models.AlertDestination.Teams.Fact>() };
+            var lastParent = "";
             foreach (var sc in lstStateTracking)
             {
+                if (lastParent != sc.Parent) //separator {
+                {
+                    teamsFactSet.Facts.Add(new Models.AlertDestination.Teams.Fact() { Title = $"-", Value = $"" });
+                    teamsFactSet.Facts.Add(new Models.AlertDestination.Teams.Fact() { Title = $"{sc.Parent}", Value = $"" });
+                    teamsFactSet.Facts.Add(new Models.AlertDestination.Teams.Fact() { Title = $"-", Value = $"" });
+
+                }
+
                 var emj = sc.AlertRequired ? emojiCritical : emojiOk;
-                teamsFactSet.Facts.Add(new Models.AlertDestination.Teams.Fact() { Title = $"{sc.Property} {emj}", Value = $"{sc.Description} on {sc.Parent}" });
+                teamsFactSet.Facts.Add(new Models.AlertDestination.Teams.Fact() { Title = $"{sc.Property}", Value = $"{emj} {sc.Description}" });
+                lastParent = sc.Parent;
                
             }
 
@@ -262,6 +366,7 @@ namespace vbr_state_machine_console
 
 
         }
+
 
         public static void SendTeamsWebhook(List<dynamic> content)
         {
@@ -289,19 +394,24 @@ namespace vbr_state_machine_console
                 {
                     var result = client.PostAsync(settingsAlerts.TeamsWebHookUri, new StringContent(json, null, "application/json")).Result;
                     var x = result;
-                    ColorConsole.WriteWrappedHeader($"Webhook sent", headerColor: ConsoleColor.Green);
+                    ColorConsole.WriteWrappedHeader($"Teams state summary sent", headerColor: ConsoleColor.Green);
 
                 }
                 catch (Exception ex)
                 {
 
-                    ColorConsole.WriteWrappedHeader($"Error posting Webhook", headerColor: ConsoleColor.Red);
+                    ColorConsole.WriteWrappedHeader($"Error sending teams state summary", headerColor: ConsoleColor.Red);
                     ColorConsole.WriteError(ex.Message);
 
                 }
 
             }
 
+        }
+
+        public static int CalculatePercent(double used, double capacity)
+        {
+            return (int)Math.Round((double)(100 * used) / capacity);
         }
 
     }

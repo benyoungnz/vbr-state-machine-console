@@ -92,13 +92,13 @@ namespace vbr_state_machine_console.Integration
             return content.Data;
         }
 
-        public List<Models.VBR.SOBR.ScaleoutRepository> GetSOBRS()
+        public List<Models.VBR.BackupInfrastructure.ScaleoutRepository> GetSOBRS()
         {
             var req = new RestRequest("/api/{apiVersionRoute}/backupInfrastructure/scaleoutrepositories", Method.Get);
             req.AddUrlSegment("apiVersionRoute", routeVer);
             req.AddParameter("limit", limit);
 
-            var content = restClient.Execute<Models.VBR.SOBR.ScaleoutRepositories>(req);
+            var content = restClient.Execute<Models.VBR.BackupInfrastructure.ScaleoutRepositories>(req);
 
             // Is there more than 1 page of results?
             if (content.Data.Pagination.Count < content.Data.Pagination.Total) {
@@ -112,7 +112,37 @@ namespace vbr_state_machine_console.Integration
 		            var skip = page * limit;
                     
                     req.AddOrUpdateParameter("skip", skip);
-                    var pagedResponse = restClient.Execute<Models.VBR.SOBR.ScaleoutRepositories>(req);
+                    var pagedResponse = restClient.Execute<Models.VBR.BackupInfrastructure.ScaleoutRepositories>(req);
+                    
+                    content.Data.Data.AddRange(pagedResponse.Data.Data);
+                }
+            }
+
+            return content.Data.Data;
+        }
+
+        public List<Models.VBR.BackupInfrastructure.RepositoryState> GetRepoStates()
+        {
+
+            var req = new RestRequest("/api/{apiVersionRoute}/backupInfrastructure/repositories/states", Method.Get);
+            req.AddUrlSegment("apiVersionRoute", routeVer);
+            req.AddParameter("limit", limit);
+            
+             var content = restClient.Execute<Models.VBR.BackupInfrastructure.RepositoryStates>(req);
+
+            // Is there more than 1 page of results?
+            if (content.Data.Pagination.Count < content.Data.Pagination.Total) {
+                // Determine page count
+	            double pageTotal = content.Data.Pagination.Total / content.Data.Pagination.Count;
+                pageTotal = Math.Ceiling(pageTotal);
+                var page = 0;
+                
+                while (page != pageTotal) {
+                    page++;
+		            var skip = page * limit;
+                    
+                    req.AddOrUpdateParameter("skip", skip);
+                    var pagedResponse = restClient.Execute<Models.VBR.BackupInfrastructure.RepositoryStates>(req);
                     
                     content.Data.Data.AddRange(pagedResponse.Data.Data);
                 }

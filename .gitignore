@@ -362,3 +362,5 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /vbr-state-machine-console/appsettings.json
+.vscode/launch.json
+.gitignore

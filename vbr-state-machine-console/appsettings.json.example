@@ -45,23 +45,22 @@
       "ServerTimeZone": "(UTC+12:00) Auckland, Wellington"
     }
   },
-  "Monitoring": {
-    "CapacityTier": {
+  "Monitors": {
+    "SobrPerformanceTier": {
+      "GbWarningUsage": 70,
+      "GbCriticalUsage": 90
+    },
+    "SobrCapacityTier": {
       "GbWarningLevel": 10,
       "GbCriticalLevel": 15
     }
   },
   "Alerts": {
     "TeamsEnabled": true,
-    "TeamsAlwaysNotifyStatus": true, //if enabled and all items are OK, it will still alert to your webhook
     "TeamsWebHookUri": "",
-    "xMattersEnabled": true,
-    "xMattersTriggerUrl": "",
-    "xMattersHostname": "",
-    "xMattersTriggerUsername": "",
-    "xMattersTriggerPassword": "",
-    "xMattersRecipient": "",
-    "SantaOpsHostname": "",
-    "SantaOpsEndpoint": ""
+    "xMattersEnabled": false,
+    "xMattersBase": "/api/....",
+    "xMattersHookPath": "https://yours.xmatters.com",
+    "xMattersRecipients": "ben"
   }
 }

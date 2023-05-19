@@ -25,7 +25,7 @@ namespace vbr_state_machine_console.Models.AlertDestination.Teams
         public string Schema { get; set; } = "http://adaptivecards.io/schemas/adaptive-card.json";
 
         [JsonProperty("version")]
-        public string Version { get; set; } = "1.3";
+        public string Version { get; set; } = "1.5";
 
         [JsonProperty("content")]
         public Content Content { get; set; }
