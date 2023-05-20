@@ -43,6 +43,47 @@
       "NotifyOnUpdates": false,
       "NotifyOnSupportExpiration": true,
       "ServerTimeZone": "(UTC+12:00) Auckland, Wellington"
+    },
+    "JobConfig": {
+      "IsDisabled": false,
+      "Storage": {
+        "RetentionPolicy": {
+          "Type": "RestorePoints",
+          "Quantity": 7
+        },
+        "AdvancedSettings": {
+          "BackupModeType": "Incremental",
+          "StorageData": {
+            "CompressionLevel": "Optimal",
+            "StorageOptimization": "LocalTarget",
+            "EnableInlineDataDedup": true,
+            "Encryption": {
+              "IsEnabled": false
+            }
+          },
+          "Notifications": {
+            "SendSnmpNotifications": false,
+            "EmailNotifications": {
+              "IsEnabled": false
+            }
+          },
+          "VSphere": {
+            "EnableVmwareToolsQuiescence": false,
+            "ChangedBlockTracking": {
+              "IsEnabled": true,
+              "EnableCbtautomatically": true,
+              "ResetCbtonActiveFull": true
+            }
+          },
+          "StorageIntegration": {
+            "IsEnabled": true
+          }
+        }
+      },
+      "Exclusions": [
+        "gitlab",
+        "misc"
+      ]
     }
   },
   "Monitoring": {

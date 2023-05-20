@@ -8,6 +8,9 @@ namespace vbr_state_machine_console.Models.Settings
 
     public class DesiredStates
     {
+        [JsonProperty("JobConfig")]
+        public DesiredState.JobConfig JobConfig { get; set; }
+
         [JsonProperty("SobrPerformanceTier")]
         public DesiredState.SobrPerformanceTier SobrPerformanceTier { get; set; }
 
