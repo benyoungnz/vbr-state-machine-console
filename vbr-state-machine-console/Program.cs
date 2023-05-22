@@ -268,6 +268,76 @@ namespace vbr_state_machine_console
 
         }
 
+        /// <summary>
+        /// Method <c>StateCompareJobConfig</c> Compares a Job config against desired state
+        /// </summary>
+        private static List<Models.AlertDestination.GenericCompare> StateCompareJobConfig(Integration.VBR vbrSession)
+        {
+            
+            var lstStateTracking = new List<Models.AlertDestination.GenericCompare>();
+            foreach (var jobConfig in vbrSession.GetJobConfigs())
+            {
+
+                ColorConsole.WriteWrappedHeader($"Job: {jobConfig.Name}", headerColor: ConsoleColor.Green);
+
+                //desired state checks
+                if (settingsDesiredStates.JobConfig.Exclusions.Contains(jobConfig.Name)) //processing exclusions
+                {
+                    ColorConsole.WriteEmbeddedColorLine("[yellow]Job has been excluded from DSC.[/yellow]");
+                }
+                else
+                {
+
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.JobConfig.IsDisabled, jobConfig.IsDisabled, "Job Disabled", jobConfig.Name, vbrSession.server));
+
+                    //Retention Policy
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.JobConfig.Storage.RetentionPolicy.Type, jobConfig.Storage.RetentionPolicy.Type, "Retention Policy Type", jobConfig.Name, vbrSession.server));
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.JobConfig.Storage.RetentionPolicy.Quantity, jobConfig.Storage.RetentionPolicy.Quantity, "Retention Policy Quantity", jobConfig.Name, vbrSession.server));
+
+                    //Advanced Settings
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.JobConfig.Storage.AdvancedSettings.BackupModeType, jobConfig.Storage.AdvancedSettings.BackupModeType, "Backup Mode", jobConfig.Name, vbrSession.server));
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.JobConfig.Storage.AdvancedSettings.StorageData.CompressionLevel, jobConfig.Storage.AdvancedSettings.StorageData.CompressionLevel, "Compression Level", jobConfig.Name, vbrSession.server));
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.JobConfig.Storage.AdvancedSettings.StorageData.StorageOptimization, jobConfig.Storage.AdvancedSettings.StorageData.StorageOptimization, "Storage Optimization", jobConfig.Name, vbrSession.server));
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.JobConfig.Storage.AdvancedSettings.StorageData.EnableInlineDataDedup, jobConfig.Storage.AdvancedSettings.StorageData.EnableInlineDataDedup, "Storage Optimization", jobConfig.Name, vbrSession.server));
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.JobConfig.Storage.AdvancedSettings.StorageData.Encryption.IsEnabled, jobConfig.Storage.AdvancedSettings.StorageData.Encryption.IsEnabled, "Job-level Encryption", jobConfig.Name, vbrSession.server));
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.JobConfig.Storage.AdvancedSettings.Notifications.SendSnmpNotifications, jobConfig.Storage.AdvancedSettings.Notifications.SendSnmpNotifications, "Send SNMP Notifications", jobConfig.Name, vbrSession.server));
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.JobConfig.Storage.AdvancedSettings.Notifications.EmailNotifications.IsEnabled, jobConfig.Storage.AdvancedSettings.Notifications.EmailNotifications.IsEnabled, "Email Notifications", jobConfig.Name, vbrSession.server));
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.JobConfig.Storage.AdvancedSettings.VSphere.EnableVmwareToolsQuiescence, jobConfig.Storage.AdvancedSettings.VSphere.EnableVmwareToolsQuiescence, "VMware Tools Quiescence", jobConfig.Name, vbrSession.server));
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.JobConfig.Storage.AdvancedSettings.VSphere.ChangedBlockTracking.IsEnabled, jobConfig.Storage.AdvancedSettings.VSphere.ChangedBlockTracking.IsEnabled, "VMware CBT", jobConfig.Name, vbrSession.server));
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.JobConfig.Storage.AdvancedSettings.VSphere.ChangedBlockTracking.EnableCbtautomatically, jobConfig.Storage.AdvancedSettings.VSphere.ChangedBlockTracking.EnableCbtautomatically, "Enable CBT Automatically", jobConfig.Name, vbrSession.server));
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.JobConfig.Storage.AdvancedSettings.VSphere.ChangedBlockTracking.ResetCbtonActiveFull, jobConfig.Storage.AdvancedSettings.VSphere.ChangedBlockTracking.ResetCbtonActiveFull, "Reset CBT on Active Full", jobConfig.Name, vbrSession.server));
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.JobConfig.Storage.AdvancedSettings.StorageIntegration.IsEnabled, jobConfig.Storage.AdvancedSettings.StorageIntegration.IsEnabled, "Storage Integration", jobConfig.Name, vbrSession.server));
+
+                }
+
+            }
+
+            return lstStateTracking;
+            
+        }
+
+        // /// <summary>
+        // /// Method <c>StateCompareJobState</c> Compares a Job status against desired state
+        // /// </summary>
+        // private static List<Models.AlertDestination.GenericCompare> StateCompareJobState(Integration.VBR vbrSession)
+        // {
+        //     foreach (var jobState in vbrSession.GetJobStates())
+        //     {
+
+
+        //         ColorConsole.WriteWrappedHeader($"{jobState.Name}", headerColor: ConsoleColor.Green);
+
+        //         ColorConsole.WriteEmbeddedColorLine($"Status: [green]{jobState.Status}[/green]");
+        //         ColorConsole.WriteEmbeddedColorLine($"Last Run: [green]{jobState.LastRun}[/green]");
+
+        //         //desired state checks
+
+        //         //capacity tier enabled check
+        //         // lstStateTracking.Add(StateComparer(settingsDesiredStates.CapacityTier.Enabled, sobr.CapacityTier.Enabled, "Capacity Tier Enabled", sobr.Name, bkpServer));
+                
+        //     }
+        // }
+
         private static void ProcessBackupServer(BackupServer bkpServer)
         {
             //fire up a VBR session
@@ -281,54 +351,15 @@ namespace vbr_state_machine_console
 
             //global settings
             lstStateTracking.AddRange(StateCompareGeneralSettings(vbrSession));
-
             
             //scale out backup repositories
             lstStateTracking.AddRange(StateCompareSOBR(vbrSession));
 
+            //job configs
+            lstStateTracking.AddRange(StateCompareJobConfig(vbrSession));
 
-
-
-
-            //job states
-            foreach (var jobState in vbrSession.GetJobStates())
-            {
-
-
-                ColorConsole.WriteWrappedHeader($"{jobState.Name}", headerColor: ConsoleColor.Green);
-
-                ColorConsole.WriteEmbeddedColorLine($"Status: [green]{jobState.Status}[/green]");
-                ColorConsole.WriteEmbeddedColorLine($"Last Run: [green]{jobState.LastRun}[/green]");
-
-                //desired state checks
-
-                //capacity tier enabled check
-                // lstStateTracking.Add(StateComparer(settingsDesiredStates.CapacityTier.Enabled, sobr.CapacityTier.Enabled, "Capacity Tier Enabled", sobr.Name, bkpServer));
-              
-            }
-
-            // //job configs
-            // foreach (var jobConfig in vbrSession.GetJobConfigs())
-            // {
-
-
-            //     ColorConsole.WriteWrappedHeader($"{jobConfig.Name}", headerColor: ConsoleColor.Green);
-
-            //     ColorConsole.WriteEmbeddedColorLine($"Description: [green]{jobConfig.Description}[/green]");
-            //     ColorConsole.WriteEmbeddedColorLine($"Disabled: [green]{jobConfig.IsDisabled}[/green]");
-
-            //     //desired state checks
-
-            //     //capacity tier enabled check
-            //     // lstStateTracking.Add(StateComparer(settingsDesiredStates.CapacityTier.Enabled, sobr.CapacityTier.Enabled, "Capacity Tier Enabled", sobr.Name, bkpServer));
-              
-            // }
-
-            var xMatters = new XMatters(settingsAlerts);
-            foreach (var alert in alertsToTrigger)
-            {
-                xMatters.TriggerWebhook(alert);
-            }
+             //job states
+            // lstStateTracking.AddRange(StateCompareJobState(vbrSession));
 
             var emojiOk = "✅";
             var emojiWarning = "📣";
