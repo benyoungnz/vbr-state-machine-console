@@ -35,6 +35,7 @@ namespace vbr_state_machine_console.Integration
                 Priority = alert.Priority,
                 Recipients = alertSettings.xMattersRecipients,
                 Summary = alert.Subject
+            
             };
 
             using (HttpClient client = new HttpClient())

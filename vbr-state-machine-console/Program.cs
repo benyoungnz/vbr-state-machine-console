@@ -433,6 +433,9 @@ namespace vbr_state_machine_console
 
             }
 
+            if (settingsAlerts.TeamsEnabled)
+                microsoftTeams.TriggerAlerts(alertsToTrigger, bkpServer.Host);
+
 
             //enable teams push of state config
             if (settingsAlerts.TeamsEnabled)
