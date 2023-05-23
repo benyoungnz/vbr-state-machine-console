@@ -3,7 +3,7 @@
 ## Getting started
 - Make sure you have the .NET 7 SDK installed
 - Navigate to the ./vbr-state-machine-console folder
-- In a text editor, rename appsettings.json.example to appsettins.json
+- In a text editor, rename appsettings.json.example to appsettings.json
 - Make the necessary changes to the appsettings (see below)
 - Open a terminate in ./vbr-state-machine-console folder, type **dotnet run**
 

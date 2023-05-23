@@ -28,6 +28,38 @@ namespace vbr_state_machine_console.Integration
             this.alertSettings = alertSettings;
         }
 
+        public void TriggerAlerts(List<GenericAlert> lstAlerts, string bkpServerHostname)
+        {
+
+             //group by
+            var teamsAlertAttachments = new List<dynamic>(); //the alert for THIS sobr
+            var teamsFactSet = new Models.AlertDestination.Teams.BodyFactSet() { Facts = new List<Models.AlertDestination.Teams.Fact>() };
+            var lastParent = "";
+            foreach (var sc in lstAlerts)
+            {
+                if (lastParent != sc.Parent) //separator {
+                {
+                    teamsFactSet.Facts.Add(new Models.AlertDestination.Teams.Fact() { Title = $"-", Value = $"" });
+                    teamsFactSet.Facts.Add(new Models.AlertDestination.Teams.Fact() { Title = $"{sc.Parent}", Value = $"" });
+                    teamsFactSet.Facts.Add(new Models.AlertDestination.Teams.Fact() { Title = $"-", Value = $"" });
+
+                }
+
+                var emj = sc.Priority == "CRITICAL" ? emojiCritical : emojiWarning;
+                teamsFactSet.Facts.Add(new Models.AlertDestination.Teams.Fact() { Title = $"{sc.Property}", Value = $"{emj} {sc.Subject}, {sc.Message}" });
+                lastParent = sc.Parent;
+               
+            }
+
+            teamsAlertAttachments.Add(new Models.AlertDestination.Teams.BodyTextBlock() { Text = $"Monitors", Size = "large" });
+            teamsAlertAttachments.Add(new Models.AlertDestination.Teams.BodyTextBlock() { Text = $"Captured {DateTime.Now} for host **{bkpServerHostname}**" });
+
+            teamsAlertAttachments.Add(teamsFactSet); //facts 
+            TriggerWebhook(teamsAlertAttachments, "Monitors"); //send teams alert.
+
+   
+        }
+
 
         public void TriggerDesiredState(List<GenericCompare> lstStateTracking, string bkpServerHostname)
         {
