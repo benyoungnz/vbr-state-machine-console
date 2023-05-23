@@ -40,6 +40,8 @@ namespace vbr_state_machine_console.Models.Settings
 
         [JsonProperty("TeamsEnabled")]
         public bool TeamsEnabled { get; set; }
+        [JsonProperty("SantaOpsEnabled")]
+        public bool SantaOpsEnabled { get; set; }
 
         [JsonProperty("TeamsWebHookUri")]
         public Uri TeamsWebHookUri { get; set; }
@@ -55,6 +57,9 @@ namespace vbr_state_machine_console.Models.Settings
 
         [JsonProperty("xMattersRecipients")]
         public string xMattersRecipients { get; set; }
+
+        [JsonProperty("SantaOpsUri")]
+        public string SantaOpsUri { get; set; }
 
     }
 }

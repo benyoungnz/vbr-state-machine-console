@@ -102,6 +102,8 @@
     "xMattersEnabled": false,
     "xMattersBase": "/api/....",
     "xMattersHookPath": "https://yours.xmatters.com",
-    "xMattersRecipients": "ben"
+    "xMattersRecipients": "ben",
+    "SantaOpsUri": "https://santaops.north.pole/api/alarm",
+    "SantaOpsEnabled": true
   }
 }

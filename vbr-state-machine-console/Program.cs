@@ -167,25 +167,32 @@ namespace vbr_state_machine_console
 
                 //capacity tier enabled
                 lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.Enabled, sobr.CapacityTier.Enabled, "Capacity Tier Enabled", sobr.Name, vbrSession.server));
-                //capacity tier immediate copy
-                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.ImmediateCopyRequired, sobr.CapacityTier.CopyPolicyEnabled, "Capacity Tier Encryption", sobr.Name, vbrSession.server));
-                //capacity tier enforce encryption
-                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.EnforceEncryption, sobr.CapacityTier.Encryption.IsEnabled, "Capacity Tier Encryption", sobr.Name, vbrSession.server));
-                //capacity tier move enabled
-                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.MoveEnabled, sobr.CapacityTier.MovePolicyEnabled, "Capacity Tier Move Enabled", sobr.Name, vbrSession.server));
-                //capacity tier move after days
-                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.MoveAfterDays, sobr.CapacityTier.OperationalRestorePeriodDays, "Capacity Tier Move After Days", sobr.Name, vbrSession.server));
-
+                
+                if (sobr.CapacityTier.Enabled) //only check these if enabled
+                {
+                    //capacity tier immediate copy
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.ImmediateCopyRequired, sobr.CapacityTier.CopyPolicyEnabled, "Capacity Tier Encryption", sobr.Name, vbrSession.server));
+                    //capacity tier enforce encryption
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.EnforceEncryption, sobr.CapacityTier.Encryption.IsEnabled, "Capacity Tier Encryption", sobr.Name, vbrSession.server));
+                    //capacity tier move enabled
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.MoveEnabled, sobr.CapacityTier.MovePolicyEnabled, "Capacity Tier Move Enabled", sobr.Name, vbrSession.server));
+                    //capacity tier move after days
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.MoveAfterDays, sobr.CapacityTier.OperationalRestorePeriodDays, "Capacity Tier Move After Days", sobr.Name, vbrSession.server));
+                }
+                
 
                 //archive tier enabled
                 lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrArchiveTier.Enabled, sobr.ArchiveTier.IsEnabled, "Archive Tier Enabled", sobr.Name, vbrSession.server));
-                //archive tier period days
-                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrArchiveTier.ArchivePeriodDays, sobr.ArchiveTier.ArchivePeriodDays, "Archive Tier Period Days", sobr.Name, vbrSession.server));
-                //archive tier cost optimized
-                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrArchiveTier.CostOptimizedEnabled, sobr.ArchiveTier.AdvancedSettings.CostOptimizedArchiveEnabled, "Archive Tier Cost Optimized", sobr.Name, vbrSession.server));
-                //archive tier cost optimized
-                lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrArchiveTier.DedupeEnabled, sobr.ArchiveTier.AdvancedSettings.ArchiveDeduplicationEnabled, "Archive Tier Dedupe", sobr.Name, vbrSession.server));
-
+                if (sobr.ArchiveTier.IsEnabled) // only check these if enabled
+                {
+                    //archive tier period days
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrArchiveTier.ArchivePeriodDays, sobr.ArchiveTier.ArchivePeriodDays, "Archive Tier Period Days", sobr.Name, vbrSession.server));
+                    //archive tier cost optimized
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrArchiveTier.CostOptimizedEnabled, sobr.ArchiveTier.AdvancedSettings.CostOptimizedArchiveEnabled, "Archive Tier Cost Optimized", sobr.Name, vbrSession.server));
+                    //archive tier cost optimized
+                    lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrArchiveTier.DedupeEnabled, sobr.ArchiveTier.AdvancedSettings.ArchiveDeduplicationEnabled, "Archive Tier Dedupe", sobr.Name, vbrSession.server));
+                }
+                
 
                 //monitoring 
                 //get state information, such as utilisation
@@ -208,7 +215,7 @@ namespace vbr_state_machine_console
                            {
                                 Message = $"Capacity: {perfRepoState.CapacityGb}gb, Used: {perfRepoState.UsedSpaceGb}gb",
                                 Parent = sobr.Name,
-                                VBRServer = vbrSession.server.Host,
+                                VBRServer = vbrSession.serverHostname,
                                 Property = $"Performance Extent {pe.Name}",
                                 Subject = $"Performance extent at {perfCapacityPercentUsed}%"
                   
@@ -224,10 +231,11 @@ namespace vbr_state_machine_console
                     }
                 }
 
-                //capacity tier for this SOBR
-                ColorConsole.WriteEmbeddedColorLine($"\n[green]Capacity Tier Monitoring[/green]");
                 if (sobr.CapacityTier.Enabled)
                 {
+                    //capacity tier for this SOBR
+                    ColorConsole.WriteEmbeddedColorLine($"\n[green]Capacity Tier Monitoring[/green]");
+                
                     ColorConsole.WriteInfo("\nCapacity Tier //");
             
                     //get state information, such as utilisation
@@ -244,7 +252,7 @@ namespace vbr_state_machine_console
                            {
                                 Message = $"Used: {capRepoState.UsedSpaceGb}gb, Endpoint: {capRepoState.Path}",
                                 Parent = sobr.Name,
-                                VBRServer = vbrSession.server.Host,
+                                VBRServer = vbrSession.serverHostname,
                                 Property = $"{capRepoState.Path}",
                                 Subject = $"Capacity tier usage at {capRepoState.UsedSpaceGb}gb"
                   
@@ -356,89 +364,46 @@ namespace vbr_state_machine_console
             lstStateTracking.AddRange(StateCompareSOBR(vbrSession));
 
             //job configs
-            lstStateTracking.AddRange(StateCompareJobConfig(vbrSession));
+            // lstStateTracking.AddRange(StateCompareJobConfig(vbrSession));
 
              //job states
             // lstStateTracking.AddRange(StateCompareJobState(vbrSession));
 
-            var emojiOk = "✅";
-            var emojiWarning = "📣";
-            var emojiCritical = "🚨";
-
-            //process alerts, for now dump everything, need to use the alwaysAlert teams etc to push potentially just violations of rules
-            //TODO: move to helper function and provide more functionality and formatting, just a quick test example
 
 
-            //group by
-            var teamsAlertAttachments = new List<dynamic>(); //the alert for THIS sobr
-            var teamsFactSet = new Models.AlertDestination.Teams.BodyFactSet() { Facts = new List<Models.AlertDestination.Teams.Fact>() };
-            var lastParent = "";
-            foreach (var sc in lstStateTracking)
+            //setup our integration clients
+            var xMatters = new XMatters(settingsAlerts);
+            var santaOps = new SantaOps(settingsAlerts);
+            var microsoftTeams = new Teams(settingsAlerts);
+            
+
+            //alerts
+            foreach (var alert in alertsToTrigger)
             {
-                if (lastParent != sc.Parent) //separator {
-                {
-                    teamsFactSet.Facts.Add(new Models.AlertDestination.Teams.Fact() { Title = $"-", Value = $"" });
-                    teamsFactSet.Facts.Add(new Models.AlertDestination.Teams.Fact() { Title = $"{sc.Parent}", Value = $"" });
-                    teamsFactSet.Facts.Add(new Models.AlertDestination.Teams.Fact() { Title = $"-", Value = $"" });
+                if (settingsAlerts.XMattersEnabled)
+                    xMatters.TriggerWebhook(alert);
 
-                }
+                if (settingsAlerts.SantaOpsEnabled) 
+                    santaOps.TriggerWebhook(alert);
 
-                var emj = sc.AlertRequired ? emojiCritical : emojiOk;
-                teamsFactSet.Facts.Add(new Models.AlertDestination.Teams.Fact() { Title = $"{sc.Property}", Value = $"{emj} {sc.Description}" });
-                lastParent = sc.Parent;
-               
             }
 
-            teamsAlertAttachments.Add(new Models.AlertDestination.Teams.BodyTextBlock() { Text = $"Desired State Comparer", Size = "large" });
-            teamsAlertAttachments.Add(new Models.AlertDestination.Teams.BodyTextBlock() { Text = $"Captured {DateTime.Now} for host **{bkpServer.Host}**" });
 
-            teamsAlertAttachments.Add(teamsFactSet); //facts 
-            SendTeamsWebhook(teamsAlertAttachments); //send teams alert.
+            //enable teams push of state config
+            if (settingsAlerts.TeamsEnabled)
+                microsoftTeams.TriggerDesiredState(lstStateTracking, bkpServer.Host);
 
+            
+
+
+
+
+           
 
         }
 
 
-        public static void SendTeamsWebhook(List<dynamic> content)
-        {
-
-            var teamsMessage = new Models.AlertDestination.Teams.Webhook()
-            {
-                Attachments = new List<Models.AlertDestination.Teams.Attachment>()
-            };
-
-            var mainAttachment = new Models.AlertDestination.Teams.Attachment() { Content = new Models.AlertDestination.Teams.Content() { Body = new List<dynamic>() } };
-
-            foreach (var c in content)
-            {
-                mainAttachment.Content.Body.Add(c);
-            }
-
-            teamsMessage.Attachments.Add(mainAttachment);
-
-
-
-            using (HttpClient client = new HttpClient())
-            {
-                var json = JsonConvert.SerializeObject(teamsMessage);
-                try
-                {
-                    var result = client.PostAsync(settingsAlerts.TeamsWebHookUri, new StringContent(json, null, "application/json")).Result;
-                    var x = result;
-                    ColorConsole.WriteWrappedHeader($"Teams state summary sent", headerColor: ConsoleColor.Green);
-
-                }
-                catch (Exception ex)
-                {
-
-                    ColorConsole.WriteWrappedHeader($"Error sending teams state summary", headerColor: ConsoleColor.Red);
-                    ColorConsole.WriteError(ex.Message);
-
-                }
-
-            }
-
-        }
+       
 
         public static int CalculatePercent(double used, double capacity)
         {

@@ -19,11 +19,13 @@ namespace vbr_state_machine_console.Integration
         private string routeVer;
         private double limit;
         public BackupServer server;
+        public string serverHostname;
         public VBR(Models.Settings.BackupServer bkpServer) { 
             restClient = Connect(bkpServer); //connect
             routeVer = bkpServer.ApiRouteVersion;
             limit = bkpServer.ApiLimit;
             server = bkpServer;
+            serverHostname = bkpServer.Host;
         }
 
         private RestClient Connect(Models.Settings.BackupServer bkpServer)

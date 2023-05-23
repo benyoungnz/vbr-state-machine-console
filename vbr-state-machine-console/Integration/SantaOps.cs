@@ -15,35 +15,25 @@ using veeam_repository_reporter;
 
 namespace vbr_state_machine_console.Integration
 {
-    internal class XMatters
+    internal class SantaOps
     {
 
-        private RestClient restClient;
+
         private Models.Settings.Alerts alertSettings {get;set;}
-        public XMatters(Models.Settings.Alerts alertSettings) { 
-            restClient = Connect(alertSettings); //connect
+        public SantaOps(Models.Settings.Alerts alertSettings) { 
+
             this.alertSettings = alertSettings;
         }
 
-        private RestClient Connect(Models.Settings.Alerts alertSettings)
-        {
-            var options = new RestClientOptions(string.Format("https://{0}", alertSettings.xMattersBase));
-
-            //define rest client
-            var restClient = new RestClient(options, configureSerialization: s => s.UseNewtonsoftJson());
-
-            return restClient;
-
-        }
 
         public void TriggerWebhook(GenericAlert alert)
         {
 
-            var triggerEvent = new Models.XMatters.TriggerEvent()
+            var triggerEvent = new Models.SantaOps.TriggerEvent()
             { 
-                Description = $"{alert.Message} for {alert.Parent} on {alert.VBRServer}",
-                Priority = alert.Priority,
-                Recipients = alertSettings.xMattersRecipients,
+                Message = $"{alert.Message} for {alert.Parent}",
+                Hostname = alert.VBRServer,
+                TriggeredOn = DateTime.Now.ToString(),
                 Summary = alert.Subject
             };
 
@@ -52,15 +42,15 @@ namespace vbr_state_machine_console.Integration
                 var json = JsonConvert.SerializeObject(triggerEvent);
                 try
                 {
-                    var result = client.PostAsync(alertSettings.xMattersBase + alertSettings.xMattersHookPath, new StringContent(json, null, "application/json")).Result;
+                    var result = client.PostAsync(alertSettings.SantaOpsUri, new StringContent(json, null, "application/json")).Result;
                     var x = result;
-                     ColorConsole.WriteWrappedHeader($"xMatters triggered - {alert.Parent} {alert.Message}.", headerColor: ConsoleColor.Green);
+                     ColorConsole.WriteWrappedHeader($"Santa Ops triggered - {alert.Parent} {alert.Message}.", headerColor: ConsoleColor.Green);
 
                 }
                 catch (Exception ex)
                 {
 
-                    ColorConsole.WriteWrappedHeader($"xMatters failure - {alert.Parent} {alert.Message}.", headerColor: ConsoleColor.Red);
+                    ColorConsole.WriteWrappedHeader($"Santa Ops failure - {alert.Parent} {alert.Message}.", headerColor: ConsoleColor.Red);
                     ColorConsole.WriteError(ex.Message);
 
                 }
