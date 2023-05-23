@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace vbr_state_machine_console.Models.AlertDestination
 {
-    internal class GenericAlert
+    internal class GenericAlert //
     {
         public string Subject { get; set; }
         public string Message { get; set; } 

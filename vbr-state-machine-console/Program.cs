@@ -364,11 +364,7 @@ namespace vbr_state_machine_console
             lstStateTracking.AddRange(StateCompareSOBR(vbrSession));
 
             //job configs
-            // lstStateTracking.AddRange(StateCompareJobConfig(vbrSession));
-
-             //job states
-            // lstStateTracking.AddRange(StateCompareJobState(vbrSession));
-
+            lstStateTracking.AddRange(StateCompareJobConfig(vbrSession));
 
 
             //setup our integration clients

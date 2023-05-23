@@ -18,23 +18,13 @@ namespace vbr_state_machine_console.Integration
     internal class XMatters
     {
 
-        private RestClient restClient;
+
         private Models.Settings.Alerts alertSettings {get;set;}
         public XMatters(Models.Settings.Alerts alertSettings) { 
-            restClient = Connect(alertSettings); //connect
+
             this.alertSettings = alertSettings;
         }
 
-        private RestClient Connect(Models.Settings.Alerts alertSettings)
-        {
-            var options = new RestClientOptions(string.Format("https://{0}", alertSettings.xMattersBase));
-
-            //define rest client
-            var restClient = new RestClient(options, configureSerialization: s => s.UseNewtonsoftJson());
-
-            return restClient;
-
-        }
 
         public void TriggerWebhook(GenericAlert alert)
         {
