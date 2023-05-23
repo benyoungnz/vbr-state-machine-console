@@ -28,7 +28,7 @@ namespace vbr_state_machine_console
         private static Monitors settingsMonitors { get; set; }
         private static Alerts settingsAlerts { get; set; }
         private static DesiredStates settingsDesiredStates { get; set; }
-        private static List<GenericAlert> alertsToTrigger {get;set;} 
+        private static List<GenericAlert> alertsToTrigger { get; set; }
 
         static void Main(string[] args)
         {
@@ -146,7 +146,7 @@ namespace vbr_state_machine_console
         private static List<Models.AlertDestination.GenericCompare> StateCompareSOBR(Integration.VBR vbrSession)
         {
 
-            var repoStates = vbrSession.GetRepoStates(); 
+            var repoStates = vbrSession.GetRepoStates();
 
             var lstStateTracking = new List<Models.AlertDestination.GenericCompare>();
             foreach (var sobr in vbrSession.GetSOBRS())
@@ -167,7 +167,7 @@ namespace vbr_state_machine_console
 
                 //capacity tier enabled
                 lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.Enabled, sobr.CapacityTier.Enabled, "Capacity Tier Enabled", sobr.Name, vbrSession.server));
-                
+
                 if (sobr.CapacityTier.Enabled) //only check these if enabled
                 {
                     //capacity tier immediate copy
@@ -179,7 +179,7 @@ namespace vbr_state_machine_console
                     //capacity tier move after days
                     lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.MoveAfterDays, sobr.CapacityTier.OperationalRestorePeriodDays, "Capacity Tier Move After Days", sobr.Name, vbrSession.server));
                 }
-                
+
 
                 //archive tier enabled
                 lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrArchiveTier.Enabled, sobr.ArchiveTier.IsEnabled, "Archive Tier Enabled", sobr.Name, vbrSession.server));
@@ -192,7 +192,7 @@ namespace vbr_state_machine_console
                     //archive tier cost optimized
                     lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrArchiveTier.DedupeEnabled, sobr.ArchiveTier.AdvancedSettings.ArchiveDeduplicationEnabled, "Archive Tier Dedupe", sobr.Name, vbrSession.server));
                 }
-                
+
 
                 //monitoring 
                 //get state information, such as utilisation
@@ -206,27 +206,27 @@ namespace vbr_state_machine_console
                     if (perfRepoState != null)
                     {
                         var perfCapacityPercentUsed = CalculatePercent(perfRepoState.UsedSpaceGb, perfRepoState.CapacityGb);
-                        
-                    
+
+
                         if (perfCapacityPercentUsed >= settingsMonitors.SobrPerformanceTier.GbWarningLevel)
                         {
-                           var priority = perfCapacityPercentUsed >= settingsMonitors.SobrPerformanceTier.GbCriticalLevel ? "MEDIUM" : "CRITICAL";
-                           alertsToTrigger.Add(new GenericAlert()
-                           {
+                            var priority = perfCapacityPercentUsed >= settingsMonitors.SobrPerformanceTier.GbCriticalLevel ? "MEDIUM" : "CRITICAL";
+                            alertsToTrigger.Add(new GenericAlert()
+                            {
                                 Message = $"Capacity: {perfRepoState.CapacityGb}gb, Used: {perfRepoState.UsedSpaceGb}gb",
                                 Parent = sobr.Name,
                                 VBRServer = vbrSession.serverHostname,
                                 Property = $"Performance Extent {pe.Name}",
                                 Subject = $"Performance extent at {perfCapacityPercentUsed}%"
-                  
-                           });
+
+                            });
                             ColorConsole.WriteEmbeddedColorLine($"Status: [yellow]{priority} {perfCapacityPercentUsed}% Used[/yellow] // Name: [yellow]{pe.Name}[/yellow]");
 
 
                         }
                         else
-                         ColorConsole.WriteEmbeddedColorLine($"Status: [green]OK {perfCapacityPercentUsed}% Used[/green] // Name: [green]{pe.Name}[/green]");
-                  
+                            ColorConsole.WriteEmbeddedColorLine($"Status: [green]OK {perfCapacityPercentUsed}% Used[/green] // Name: [green]{pe.Name}[/green]");
+
 
                     }
                 }
@@ -235,41 +235,40 @@ namespace vbr_state_machine_console
                 {
                     //capacity tier for this SOBR
                     ColorConsole.WriteEmbeddedColorLine($"\n[green]Capacity Tier Monitoring[/green]");
-                
+
                     ColorConsole.WriteInfo("\nCapacity Tier //");
-            
+
                     //get state information, such as utilisation
                     var capRepoState = repoStates.Where(x => x.Id == sobr.CapacityTier.ExtentId).FirstOrDefault();
                     ColorConsole.WriteLine("State Information:");
                     if (capRepoState != null)
                     {
-           
-                       
+
                         if (capRepoState.UsedSpaceGb >= settingsMonitors.SobrCapacityTier.GbWarningLevel)
                         {
-                           var priority = capRepoState.UsedSpaceGb >= settingsMonitors.SobrCapacityTier.GbCriticalLevel ? "MEDIUM" : "CRITICAL";
-                           alertsToTrigger.Add(new GenericAlert()
-                           {
+                            var priority = capRepoState.UsedSpaceGb >= settingsMonitors.SobrCapacityTier.GbCriticalLevel ? "MEDIUM" : "CRITICAL";
+                            alertsToTrigger.Add(new GenericAlert()
+                            {
                                 Message = $"Used: {capRepoState.UsedSpaceGb}gb, Endpoint: {capRepoState.Path}",
                                 Parent = sobr.Name,
                                 VBRServer = vbrSession.serverHostname,
                                 Property = $"{capRepoState.Path}",
                                 Subject = $"Capacity tier usage at {capRepoState.UsedSpaceGb}gb"
-                  
-                           });
+
+                            });
 
                             ColorConsole.WriteEmbeddedColorLine($"Status: [yellow]{priority} {capRepoState.UsedSpaceGb}gb Used[/yellow] // Path: [yellow]{capRepoState.Path}[/yellow]");
 
                         }
                         else
-                         ColorConsole.WriteEmbeddedColorLine($"Status: [green]OK {capRepoState.UsedSpaceGb}gb Used[/green] // Path: [green]{capRepoState.Path}[/green]");
-                  
+                            ColorConsole.WriteEmbeddedColorLine($"Status: [green]OK {capRepoState.UsedSpaceGb}gb Used[/green] // Path: [green]{capRepoState.Path}[/green]");
+
 
                     }
-                   
+
 
                 }
-    
+
             }
 
             return lstStateTracking;
@@ -281,7 +280,9 @@ namespace vbr_state_machine_console
         /// </summary>
         private static List<Models.AlertDestination.GenericCompare> StateCompareJobConfig(Integration.VBR vbrSession)
         {
-            
+
+            var jobStates = vbrSession.GetJobStates();
+
             var lstStateTracking = new List<Models.AlertDestination.GenericCompare>();
             foreach (var jobConfig in vbrSession.GetJobConfigs())
             {
@@ -318,33 +319,81 @@ namespace vbr_state_machine_console
 
                 }
 
+                //monitoring checks
+                var jobState = jobStates.Where(x => x.Id == jobConfig.Id).FirstOrDefault();
+                if (jobState != null)
+                {
+                    if (jobState.LastResult == "Success")
+                    {
+                        ColorConsole.WriteEmbeddedColorLine($"Last Result: [green]{jobState.LastResult}[/green]");
+                    }
+                    else if (jobState.LastResult == "Warning")
+                    {
+                        ColorConsole.WriteEmbeddedColorLine($"Last Result: [yellow]{jobState.LastResult}[/yellow]");
+                        alertsToTrigger.Add(new GenericAlert()
+                        {
+                            Message = "Last job run was not successful.",
+                            Parent = jobState.Name,
+                            VBRServer = vbrSession.serverHostname,
+                            Property = $"{jobState.LastResult}",
+                            Subject = $"Jobs status {jobState.LastResult}"
+
+                        });
+                    }
+                    else if (jobState.LastResult == "Failed")
+                    {
+                        ColorConsole.WriteEmbeddedColorLine($"Last Result: [red]{jobState.LastResult}[/red]");
+                        alertsToTrigger.Add(new GenericAlert()
+                        {
+                            Message = "Last job run was not successful.",
+                            Parent = jobState.Name,
+                            VBRServer = vbrSession.serverHostname,
+                            Property = $"{jobState.LastResult}",
+                            Subject = $"Jobs status {jobState.LastResult}"
+
+                        });
+                    }
+                    else if (jobState.LastResult == "None")
+                    {
+                        ColorConsole.WriteEmbeddedColorLine($"Last Result: [blue]{jobState.LastResult}[/blue]");
+                    }
+
+                    if (jobState.LastRun != null)
+                    {
+                        DateTimeOffset now = DateTimeOffset.Now;
+                        double RpoDays = (now - jobState.LastRun.Value).TotalDays;
+
+                        if (RpoDays >= settingsMonitors.Job.RpoDays)
+                        {
+                            ColorConsole.WriteEmbeddedColorLine($"Days since last job run: [yellow]{Math.Floor(RpoDays)}[/yellow]");
+                            ColorConsole.WriteEmbeddedColorLine($"Last Result: [red]{jobState.LastResult}[/red]");
+                            alertsToTrigger.Add(new GenericAlert()
+                            {
+                                Message = $"Job has not run for {Math.Floor(RpoDays)} days.",
+                                Parent = jobState.Name,
+                                VBRServer = vbrSession.serverHostname,
+                                Property = $"{jobState.Name}",
+                                Subject = $"RPO ({settingsMonitors.Job.RpoDays} days) not being met!"
+
+                            });
+                        }
+                        else
+                            ColorConsole.WriteEmbeddedColorLine($"Less than [green]{settingsMonitors.Job.RpoDays}[/green] days since last job run.");
+
+                    }
+                    else
+                    {
+                        ColorConsole.WriteEmbeddedColorLine($"[green]Job has never run.[/green]");
+                    }
+
+
+                }
+
             }
 
             return lstStateTracking;
-            
+
         }
-
-        // /// <summary>
-        // /// Method <c>StateCompareJobState</c> Compares a Job status against desired state
-        // /// </summary>
-        // private static List<Models.AlertDestination.GenericCompare> StateCompareJobState(Integration.VBR vbrSession)
-        // {
-        //     foreach (var jobState in vbrSession.GetJobStates())
-        //     {
-
-
-        //         ColorConsole.WriteWrappedHeader($"{jobState.Name}", headerColor: ConsoleColor.Green);
-
-        //         ColorConsole.WriteEmbeddedColorLine($"Status: [green]{jobState.Status}[/green]");
-        //         ColorConsole.WriteEmbeddedColorLine($"Last Run: [green]{jobState.LastRun}[/green]");
-
-        //         //desired state checks
-
-        //         //capacity tier enabled check
-        //         // lstStateTracking.Add(StateComparer(settingsDesiredStates.CapacityTier.Enabled, sobr.CapacityTier.Enabled, "Capacity Tier Enabled", sobr.Name, bkpServer));
-                
-        //     }
-        // }
 
         private static void ProcessBackupServer(BackupServer bkpServer)
         {
@@ -359,7 +408,7 @@ namespace vbr_state_machine_console
 
             //global settings
             lstStateTracking.AddRange(StateCompareGeneralSettings(vbrSession));
-            
+
             //scale out backup repositories
             lstStateTracking.AddRange(StateCompareSOBR(vbrSession));
 
@@ -371,7 +420,7 @@ namespace vbr_state_machine_console
             var xMatters = new XMatters(settingsAlerts);
             var santaOps = new SantaOps(settingsAlerts);
             var microsoftTeams = new Teams(settingsAlerts);
-            
+
 
             //alerts
             foreach (var alert in alertsToTrigger)
@@ -379,7 +428,7 @@ namespace vbr_state_machine_console
                 if (settingsAlerts.XMattersEnabled)
                     xMatters.TriggerWebhook(alert);
 
-                if (settingsAlerts.SantaOpsEnabled) 
+                if (settingsAlerts.SantaOpsEnabled)
                     santaOps.TriggerWebhook(alert);
 
             }
@@ -389,17 +438,17 @@ namespace vbr_state_machine_console
             if (settingsAlerts.TeamsEnabled)
                 microsoftTeams.TriggerDesiredState(lstStateTracking, bkpServer.Host);
 
-            
 
 
 
 
-           
+
+
 
         }
 
 
-       
+
 
         public static int CalculatePercent(double used, double capacity)
         {

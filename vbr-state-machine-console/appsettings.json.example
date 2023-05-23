@@ -94,6 +94,9 @@
     "SobrCapacityTier": {
       "GbWarningLevel": 10,
       "GbCriticalLevel": 15
+    },
+    "Job": {
+      "RpoDays": 1
     }
   },
   "Alerts": {
