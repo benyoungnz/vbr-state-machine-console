@@ -7,6 +7,9 @@ namespace vbr_state_machine_console.Models.Settings
 
     public class Monitors
     {
+        [JsonProperty("Job")]
+        public Monitoring.Job Job { get; set; }
+        
         [JsonProperty("SobrCapacityTier")]
         public Monitoring.SobrCapacityTier SobrCapacityTier { get; set; }
 

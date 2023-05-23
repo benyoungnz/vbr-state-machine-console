@@ -24,7 +24,7 @@ namespace vbr_state_machine_console.Models.VBR.Job
         public string Type { get; set; }
 
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
         [JsonProperty("name")]
         public string Name { get; set; }
