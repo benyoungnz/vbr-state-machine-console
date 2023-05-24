@@ -4,10 +4,10 @@ namespace vbr_state_machine_console.Models.Settings.Monitoring
 {
     public class SobrPerformanceTier
     {
-        [JsonProperty("GbWarningLevel")]
-        public int GbWarningLevel { get; set; }
+        [JsonProperty("PercentFreeWarning")]
+        public int PercentFreeWarning { get; set; }
 
-        [JsonProperty("GbCriticalLevel")]
-        public int GbCriticalLevel { get; set; }
+        [JsonProperty("PercentFreeCritical")]
+        public int PercentFreeCritical { get; set; }
     }
 }

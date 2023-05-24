@@ -88,8 +88,8 @@
   },
   "Monitors": {
     "SobrPerformanceTier": {
-      "GbWarningUsage": 70,
-      "GbCriticalUsage": 90
+      "PercentFreeWarning": 25, 
+      "PercentFreeCritical": 10
     },
     "SobrCapacityTier": {
       "GbWarningLevel": 10,

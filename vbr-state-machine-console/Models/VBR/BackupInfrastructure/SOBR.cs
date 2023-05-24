@@ -82,7 +82,7 @@ namespace vbr_state_machine_console.Models.VBR.BackupInfrastructure
         public bool MovePolicyEnabled { get; set; }
 
         [JsonProperty("operationalRestorePeriodDays")]
-        public long OperationalRestorePeriodDays { get; set; }
+        public int OperationalRestorePeriodDays { get; set; }
 
         [JsonProperty("overridePolicy")]
         public OverridePolicy OverridePolicy { get; set; }

@@ -109,31 +109,88 @@ namespace vbr_state_machine_console
 
             //email enabled
             lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailIsEnabled, generalOpt.EmailSettings.IsEnabled, "Email Enabled", "Global", vbrSession.server));
-            //email from
-            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailFrom, generalOpt.EmailSettings.From, "Email From", "Global", vbrSession.server));
-            //email to
-            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailTo, generalOpt.EmailSettings.To, "Email To", "Global", vbrSession.server));
-            //email server
-            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailSmtpServer, generalOpt.EmailSettings.SmtpServerName, "SMTP Server", "Global", vbrSession.server));
-            //email ssl
-            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailSslEnabled, generalOpt.EmailSettings.AdvancedSmtpOptions.SslEnabled, "SMTP SSL", "Global", vbrSession.server));
-            //email port
-            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailAdvPort, generalOpt.EmailSettings.AdvancedSmtpOptions.Port, "SMTP Port", "Global", vbrSession.server));
+            
+            if (settingsDesiredStates.GeneralOptions.EmailIsEnabled)
+            {
+                //email from
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailFrom, generalOpt.EmailSettings.From, "Email From", "Global", vbrSession.server));
+                //email to
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailTo, generalOpt.EmailSettings.To, "Email To", "Global", vbrSession.server));
+                //email server
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailSmtpServer, generalOpt.EmailSettings.SmtpServerName, "SMTP Server", "Global", vbrSession.server));
+                //email ssl
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailSslEnabled, generalOpt.EmailSettings.AdvancedSmtpOptions.SslEnabled, "SMTP SSL", "Global", vbrSession.server));
+                //email port
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.EmailAdvPort, generalOpt.EmailSettings.AdvancedSmtpOptions.Port, "SMTP Port", "Global", vbrSession.server));
 
-            //notification success
-            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.NotifyOnSuccess, generalOpt.EmailSettings.NotifyOnSuccess, "Notify on Success", "Global", vbrSession.server));
-            //notification warning
-            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.NotifyOnWarning, generalOpt.EmailSettings.NotifyOnWarning, "Notify on Warning", "Global", vbrSession.server));
-            //notification failure
-            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.NotifyOnFailure, generalOpt.EmailSettings.NotifyOnFailure, "Notify on Failure", "Global", vbrSession.server));
-            //notification updates
-            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.NotifyOnUpdates, generalOpt.Notifications.NotifyOnUpdates, "Notify on Updates", "Global", vbrSession.server));
-            //notification suport expire
-            lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.NotifyOnSupportExpiration, generalOpt.Notifications.NotifyOnSupportExpiration, "Notify on Support Exp", "Global", vbrSession.server));
+                //notification success
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.NotifyOnSuccess, generalOpt.EmailSettings.NotifyOnSuccess, "Notify on Success", "Global", vbrSession.server));
+                //notification warning
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.NotifyOnWarning, generalOpt.EmailSettings.NotifyOnWarning, "Notify on Warning", "Global", vbrSession.server));
+                //notification failure
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.NotifyOnFailure, generalOpt.EmailSettings.NotifyOnFailure, "Notify on Failure", "Global", vbrSession.server));
+                //notification updates
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.NotifyOnUpdates, generalOpt.Notifications.NotifyOnUpdates, "Notify on Updates", "Global", vbrSession.server));
+                //notification suport expire
+                lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.NotifyOnSupportExpiration, generalOpt.Notifications.NotifyOnSupportExpiration, "Notify on Support Exp", "Global", vbrSession.server));
 
+            }
+            
+           
 
             //server time zone
             lstStateTracking.Add(StateComparer(settingsDesiredStates.GeneralOptions.ServerTimeZone, serverTime.TimeZone, "Server Time Zone", "Global", vbrSession.server));
+
+
+            var configViolations = lstStateTracking.Where(x=>x.Parent == "Global" && x.VBRServer == vbrSession.server.Host && x.AlertRequired);
+            if (configViolations.Any())
+            {
+                ColorConsole.WriteError("Global settings need remediation");
+
+                if (settingsDesiredStates.GeneralOptions.AutoRemdediate)
+                {
+                    //we want to auto remediate. auto update.
+                    generalOpt.EmailSettings.IsEnabled = settingsDesiredStates.GeneralOptions.EmailIsEnabled;
+                    generalOpt.EmailSettings.From = settingsDesiredStates.GeneralOptions.EmailFrom;
+                    generalOpt.EmailSettings.To = settingsDesiredStates.GeneralOptions.EmailTo;
+                    generalOpt.EmailSettings.SmtpServerName = settingsDesiredStates.GeneralOptions.EmailSmtpServer;
+                    generalOpt.EmailSettings.AdvancedSmtpOptions.SslEnabled = settingsDesiredStates.GeneralOptions.EmailSslEnabled;
+                    generalOpt.EmailSettings.AdvancedSmtpOptions.Port = settingsDesiredStates.GeneralOptions.EmailAdvPort;
+
+                    generalOpt.EmailSettings.NotifyOnSuccess = settingsDesiredStates.GeneralOptions.NotifyOnSuccess;
+                    generalOpt.EmailSettings.NotifyOnWarning = settingsDesiredStates.GeneralOptions.NotifyOnWarning;
+                    generalOpt.EmailSettings.NotifyOnFailure = settingsDesiredStates.GeneralOptions.NotifyOnFailure;
+                    generalOpt.Notifications.NotifyOnUpdates = settingsDesiredStates.GeneralOptions.NotifyOnUpdates;
+                    generalOpt.Notifications.NotifyOnSupportExpiration = settingsDesiredStates.GeneralOptions.NotifyOnSupportExpiration;
+
+                    ColorConsole.WriteInfo("Updating to match configurtion");
+                    //remove previous added tracking items for global
+                    lstStateTracking.RemoveAll(x=>x.Parent == "Global" && x.VBRServer == vbrSession.server.Host);
+                    
+                    //updating
+
+                    try
+                    {
+                        vbrSession.PutGeneralOptions(generalOpt); //update general opts.
+
+                        //loop back.. check state now.
+                        StateCompareGeneralSettings(vbrSession);
+
+                    }
+                    catch(Exception ex)
+                    {
+                        ColorConsole.WriteError("Failed to update " + ex.Message);
+                    }
+                    
+
+
+
+                    
+                
+                }
+                
+            }
+       
 
 
             return lstStateTracking;
@@ -155,7 +212,7 @@ namespace vbr_state_machine_console
                 ColorConsole.WriteWrappedHeader($"{sobr.Name}", headerColor: ConsoleColor.Green);
 
                 ColorConsole.WriteEmbeddedColorLine($"Capacity Tier: [green]{sobr.CapacityTier.Enabled}[/green] // Archive Tier: [green]{sobr.ArchiveTier.IsEnabled}[/green]");
-                ColorConsole.WriteEmbeddedColorLine($"Placement: [yellow]{sobr.PlacementPolicy.Type}[/yellow] // ID: [yellow]{sobr.Id}[/yellow]");
+                ColorConsole.WriteEmbeddedColorLine($"Placement: [blue]{sobr.PlacementPolicy.Type}[/blue] // ID: [blue]{sobr.Id}[/blue]");
 
                 //desired state checks
 
@@ -177,7 +234,7 @@ namespace vbr_state_machine_console
                     //capacity tier move enabled
                     lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.MoveEnabled, sobr.CapacityTier.MovePolicyEnabled, "Capacity Tier Move Enabled", sobr.Name, vbrSession.server));
                     //capacity tier move after days
-                    lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.MoveAfterDays, sobr.CapacityTier.OperationalRestorePeriodDays, "Capacity Tier Move After Days", sobr.Name, vbrSession.server));
+                    // lstStateTracking.Add(StateComparer(settingsDesiredStates.SobrCapacityTier.MoveAfterDays, sobr.CapacityTier.OperationalRestorePeriodDays, "Capacity Tier Move After Days", sobr.Name, vbrSession.server));
                 }
 
 
@@ -200,32 +257,37 @@ namespace vbr_state_machine_console
                 ColorConsole.WriteEmbeddedColorLine($"\n[green]Performance Extent Monitoring[/green]");
                 foreach (var pe in sobr.PerformanceTier.PerformanceExtents)
                 {
-                    ColorConsole.WriteEmbeddedColorLine($"Name: [yellow]{pe.Name}[/yellow] // Status: [yellow]{pe.Status}[/yellow]");
+                    ColorConsole.WriteEmbeddedColorLine($"Name: [cyan]{pe.Name}[/cyan] // Status: [cyan]{pe.Status}[/cyan]\n");
+
+                    //first get the repo via the performance extent
+                    //then g
                     var perfRepoState = repoStates.Where(x => x.Id == pe.Id).FirstOrDefault();
+      
+
                     ColorConsole.WriteInfo("\nState Information:");
                     if (perfRepoState != null)
                     {
-                        var perfCapacityPercentUsed = CalculatePercent(perfRepoState.UsedSpaceGb, perfRepoState.CapacityGb);
+                        var perfFreePercent = CalculateFreePercent(perfRepoState.FreeGb, perfRepoState.CapacityGb);
 
 
-                        if (perfCapacityPercentUsed >= settingsMonitors.SobrPerformanceTier.GbWarningLevel)
+                        if (perfFreePercent <= settingsMonitors.SobrPerformanceTier.PercentFreeWarning)
                         {
-                            var priority = perfCapacityPercentUsed >= settingsMonitors.SobrPerformanceTier.GbCriticalLevel ? "MEDIUM" : "CRITICAL";
+                            var priority = perfFreePercent <= settingsMonitors.SobrPerformanceTier.PercentFreeCritical ? "MEDIUM" : "CRITICAL";
                             alertsToTrigger.Add(new GenericAlert()
                             {
-                                Message = $"Capacity: {perfRepoState.CapacityGb}gb, Used: {perfRepoState.UsedSpaceGb}gb",
+                                Message = $"Capacity: {perfRepoState.CapacityGb}gb, Used: {perfRepoState.UsedSpaceGb}gb, Free Space: {perfRepoState.FreeGb}gb",
                                 Parent = sobr.Name,
                                 VBRServer = vbrSession.serverHostname,
                                 Property = $"Performance Extent {pe.Name}",
-                                Subject = $"Performance extent at {perfCapacityPercentUsed}%"
+                                Subject = $"Performance extent free {perfFreePercent}%"
 
                             });
-                            ColorConsole.WriteEmbeddedColorLine($"Status: [yellow]{priority} {perfCapacityPercentUsed}% Used[/yellow] // Name: [yellow]{pe.Name}[/yellow]");
+                            ColorConsole.WriteEmbeddedColorLine($"Status: [yellow]{priority} {perfFreePercent}% Free[/yellow] // Name: [yellow]{pe.Name}[/yellow]");
 
 
                         }
                         else
-                            ColorConsole.WriteEmbeddedColorLine($"Status: [green]OK {perfCapacityPercentUsed}% Used[/green] // Name: [green]{pe.Name}[/green]");
+                            ColorConsole.WriteEmbeddedColorLine($"Status: [green]OK {perfFreePercent}% Free[/green] // Name: [green]{pe.Name}[/green] // Alert > {settingsMonitors.SobrPerformanceTier.PercentFreeWarning}% Free");
 
 
                     }
@@ -442,20 +504,14 @@ namespace vbr_state_machine_console
                 microsoftTeams.TriggerDesiredState(lstStateTracking, bkpServer.Host);
 
 
-
-
-
-
-
-
         }
 
 
 
 
-        public static int CalculatePercent(double used, double capacity)
+        public static int CalculateFreePercent(double free, double capacity)
         {
-            return (int)Math.Round((double)(100 * used) / capacity);
+            return ((int)Math.Round((double)(100 * free) / capacity));
         }
 
     }

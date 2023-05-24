@@ -83,6 +83,18 @@ namespace vbr_state_machine_console.Integration
             return content.Data;
         }
 
+        public Models.VBR.General.GeneralOptions PutGeneralOptions(Models.VBR.General.GeneralOptions putOptions)
+        {
+            var req = new RestRequest("/api/{apiVersionRoute}/generalOptions", Method.Put);
+            req.AddUrlSegment("apiVersionRoute", routeVer);
+            
+            req.AddJsonBody(putOptions); //updated data.
+
+            var content = restClient.Execute<Models.VBR.General.GeneralOptions>(req);
+
+            return content.Data;
+        }
+
         public Models.VBR.General.ServerTime GetServerTime()
         {
             var req = new RestRequest("/api/{apiVersionRoute}/serverTime", Method.Get);

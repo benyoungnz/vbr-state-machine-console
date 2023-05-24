@@ -18,6 +18,7 @@ namespace vbr_state_machine_console.Models.VBR.General
 
     public class EmailSettings
     {
+        
         [JsonProperty("isEnabled")]
         public bool IsEnabled { get; set; }
 

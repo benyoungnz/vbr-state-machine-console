@@ -4,6 +4,10 @@ namespace vbr_state_machine_console.Models.Settings.DesiredState
 {
     public partial class GeneralOptions
     {
+
+        [JsonProperty("autoRemdediate")]
+        public bool AutoRemdediate { get; set; }
+        
         [JsonProperty("EmailIsEnabled")]
         public bool EmailIsEnabled { get; set; }
 

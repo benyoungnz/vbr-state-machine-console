@@ -37,7 +37,7 @@ Desired state for the job configuration, most settings should be self explanator
 Currently implented are a few monitoring points - not designed as a replacement for your own monitoring however in some scenarios these may be able to supplement your monitoring solution. For example the Capacity Tier object storage usage, could be hard to monitor through traditional monitoring tools.
 
 ### SobrPerformanceTier
-Monitors utilisation of each performance extent. The application will calcuate the utilised space as a percent and you can set the warning and critical thresholds. 
+Monitors utilisation of each performance extent. The application will calcuate the free space as a percent and you can set the warning and critical thresholds. 
 
 ### SobrCapacityTier
 Monitors utilisation of the connected capacity tier. These values are defined as gigabytes. You can set the warning and critical usage values to warn you when you reach these usage values.

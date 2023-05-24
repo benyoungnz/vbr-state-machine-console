@@ -53,6 +53,9 @@ namespace vbr_state_machine_console.Integration
 
             teamsAlertAttachments.Add(new Models.AlertDestination.Teams.BodyTextBlock() { Text = $"Monitors", Size = "large" });
             teamsAlertAttachments.Add(new Models.AlertDestination.Teams.BodyTextBlock() { Text = $"Captured {DateTime.Now} for host **{bkpServerHostname}**" });
+            
+            if (!lstAlerts.Any())
+            teamsAlertAttachments.Add(new Models.AlertDestination.Teams.BodyTextBlock() { Text = $"{emojiOk} **All clear**, no monitors triggered" });
 
             teamsAlertAttachments.Add(teamsFactSet); //facts 
             TriggerWebhook(teamsAlertAttachments, "Monitors"); //send teams alert.
